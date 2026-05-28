@@ -1,0 +1,18 @@
+build/
+**/build/
+sdkconfig
+**/sdkconfig
+sdkconfig.old
+**/sdkconfig.old
+
+# Bỏ qua database SQLite cục bộ
+*.db
+puf_database.db
+
+# Bỏ qua file tạm của Python
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Bỏ qua file hệ thống ẩn
+.DS_Store

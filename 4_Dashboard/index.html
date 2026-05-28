@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRAM PUF IoT Dashboard</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar-brand { font-weight: bold; letter-spacing: 1px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card:hover { transform: translateY(-3px); }
+        .table-responsive { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .badge-accepted { background-color: #28a745; color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; }
+        .badge-rejected { background-color: #dc3545; color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">🛡️ HỆ THỐNG XÁC THỰC THIẾT BỊ IoT - SRAM PUF</a>
+            <span class="navbar-text text-light">Trạng thái: <strong class="text-success">TRỰC TUYẾN</strong></span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Thống kê nhanh (Stats Cards) -->
+        <div class="row mb-4 text-center">
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 bg-white">
+                    <h6 class="text-muted text-uppercase">Tổng số lượt xác thực</h6>
+                    <h2 id="total-attempts" class="text-primary fw-bold">0</h2>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 bg-white">
+                    <h6 class="text-muted text-uppercase">Xác thực thành công</h6>
+                    <h2 id="total-accepted" class="text-success fw-bold">0</h2>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 bg-white">
+                    <h6 class="text-muted text-uppercase">Tỷ lệ lỗi Bit trung bình (BER)</h6>
+                    <h2 id="avg-ber" class="text-warning fw-bold">0.00%</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng nhật ký xác thực thời gian thực -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3 fw-bold text-dark">📜 Nhật ký xác thực thời gian thực</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Địa chỉ MAC thiết bị</th>
+                                <th>Khoảng cách Hamming (Lỗi bit)</th>
+                                <th>Tỷ lệ lỗi thực tế (BER)</th>
+                                <th>Ngưỡng cho phép</th>
+                                <th>Kết luận</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-table-body">
+                            <!-- Dữ liệu sẽ tự động cập nhật vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AJAX Fetch Script để cập nhật thời gian thực -->
+    <script>
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                
+                // 1. Cập nhật các thẻ thống kê nhanh
+                document.getElementById('total-attempts').innerText = data.stats.total;
+                document.getElementById('total-accepted').innerText = data.stats.accepted;
+                document.getElementById('avg-ber').innerText = data.stats.avg_ber.toFixed(2) + "%";
+
+                // 2. Cập nhật bảng nhật ký
+                const tbody = document.getElementById('log-table-body');
+                tbody.innerHTML = ''; // Xóa dữ liệu cũ
+
+                if (data.logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Đang chờ thiết bị gửi dữ liệu xác thực...</td></tr>`;
+                    return;
+                }
+
+                data.logs.forEach(log => {
+                    const statusBadge = log.status === 'ACCEPTED' 
+                        ? `<span class="badge-accepted">ACCEPTED</span>` 
+                        : `<span class="badge-rejected">REJECTED</span>`;
+
+                    const row = `
+                        <tr>
+                            <td>${log.timestamp}</td>
+                            <td class="font-monospace fw-bold">${log.mac}</td>
+                            <td>${log.diff_bits} / 1024 bits</td>
+                            <td class="fw-bold text-secondary">${log.ber.toFixed(2)}%</td>
+                            <td>15.00%</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error("Lỗi đồng bộ dữ liệu từ Server:", error);
+            }
+        }
+
+        // Tự động cập nhật dữ liệu mới mỗi 2 giây
+        setInterval(fetchLogs, 2000);
+        fetchLogs(); // Chạy ngay khi tải trang
+    </script>
+</body>
+</html>
