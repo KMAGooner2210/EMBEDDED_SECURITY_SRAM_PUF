@@ -9,10 +9,9 @@
 
 static const char *TAG = "PUF_GATEWAY";
 
-// --- CẤU HÌNH WIFI VÀ MQTT TRÊN LAPTOP CỦA BẠN ---
-#define WIFI_SSID           "Van Lien"     // <-- Thay bằng tên WiFi nhà bạn
-#define WIFI_PASS           "phong0947572932"        // <-- Thay bằng mật khẩu WiFi
-#define MQTT_BROKER_IP      "192.168.1.207"         // <-- Thay bằng IP Laptop vừa tìm được ở Bước 1
+#define WIFI_SSID           "kmagooner"
+#define WIFI_PASS           "22102004"
+#define MQTT_BROKER_IP      "192.168.90.152"         // <-- Thay bằng IP Laptop vừa tìm được ở Bước 1
 
 // Cấu trúc gói dữ liệu nhận từ Node qua ESP-NOW
 typedef struct struct_message {
